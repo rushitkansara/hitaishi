@@ -14,6 +14,10 @@ Hitaishi is an innovative project demonstrating an end-to-end machine learning p
 *   **Resource-Efficient:** Designed for deployment on minimal hardware, including single-board devices.
 *   **Scalable:** Financially viable and easily replicable for nationwide implementation.
 
+## Demo
+
+
+
 ## Project Structure
 
 ```
@@ -132,4 +136,3 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Contributing
 
-Contributions are welcome! Please refer to the CONTRIBUTING.md for guidelines. (Placeholder - create CONTRIBUTING.md file if needed)
