@@ -34,13 +34,6 @@ hitaishi/
 
 ## Setup and Installation
 
-### Prerequisites
-
-*   Python 3.8+
-*   Node.js and npm
-*   Git
-*   A Twilio account with Account SID, Auth Token, and a purchased Twilio Phone Number.
-
 ### 1. Clone the Repository
 
 ```bash
@@ -134,5 +127,8 @@ The project utilizes a custom LSTM model for multi-class classification of 13 me
 
 This project is licensed under the MIT License - see the LICENSE file for details. (Placeholder - create LICENSE file if needed)
 
-## Contributing
+## Additional
+
+![Uploading image.png…]()
+
 
