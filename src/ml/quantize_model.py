@@ -2,10 +2,25 @@ import tensorflow as tf
 import numpy as np
 import os
 import time
+
+# Import configuration
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+import config
+
+# Import variables from the data generation script
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'data-gen')))
+from datagen import classes
+
+
 def quantize_model(model_path, X_train):
     print("\n--- Task 2.5: Quantizing Model (INT8) ---")
     # Load trained model
     model = tf.keras.models.load_model(model_path)
+
+    # Save the model in SavedModel format
+    saved_model_dir = "/tmp/saved_model"
+    model.export(saved_model_dir)
 
     # Create representative dataset for quantization
     def representative_dataset():
@@ -13,23 +28,20 @@ def quantize_model(model_path, X_train):
             sample = X_train[np.random.randint(0, len(X_train))]
             yield [sample.reshape(1, 60, 8).astype(np.float32)]
 
-    # Convert to TFLite with INT8 quantization
-    converter = tf.lite.TFLiteConverter.from_keras_model(model)
+    # Convert to TFLite with INT8 quantization from SavedModel
+    converter = tf.lite.TFLiteConverter.from_saved_model(saved_model_dir)
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
-    # Dynamic range quantization does not require a representative dataset
-    # converter.representative_dataset = representative_dataset
-    # converter.target_spec.supported_ops = [
-    #     tf.lite.OpsSet.TFLITE_BUILTINS_INT8,
-    #     tf.lite.OpsSet.SELECT_TF_OPS
-    # ]
-    # converter._experimental_lower_tensor_list_ops = False
-    converter.inference_input_type = tf.float32
-    converter.inference_output_type = tf.float32
+    converter.representative_dataset = representative_dataset
+    converter.target_spec.supported_ops = [
+        tf.lite.OpsSet.TFLITE_BUILTINS_INT8,
+        tf.lite.OpsSet.SELECT_TF_OPS
+    ]
+    converter._experimental_lower_tensor_list_ops = False
 
     quantized_tflite_model = converter.convert()
 
     # Save quantized model
-    quantized_model_path = 'models/health_model_quantized.tflite'
+    quantized_model_path = config.HEALTH_MODEL_QUANTIZED_PATH
     with open(quantized_model_path, 'wb') as f:
         f.write(quantized_tflite_model)
 
@@ -73,15 +85,15 @@ def main():
     # We need X_train for the representative dataset and X_test for benchmarking
     print("Loading data for quantization and benchmarking...")
     
-    X_base = np.load('data-gen/data/training_sequences.npz')['X_train']
-    X_aug = np.load('data-gen/data/augmented_sequences.npz')['X_aug']
+    X_base = np.load(config.TRAINING_SEQUENCES_PATH)['X_train']
+    X_aug = np.load(config.AUGMENTED_SEQUENCES_PATH)['X_aug']
     X_full = np.concatenate([X_base, X_aug], axis=0)
     
-    y_base = np.load('data-gen/data/training_labels.npy')
-    y_aug = np.load('data-gen/data/augmented_labels.npy')
+    y_base = np.load(config.TRAINING_LABELS_PATH)
+    y_aug = np.load(config.AUGMENTED_LABELS_PATH)
     y_full = np.concatenate([y_base, y_aug], axis=0)
 
-    with open('data-gen/data/scaler_params.pkl', 'rb') as f:
+    with open(config.SCALER_PARAMS_PATH, 'rb') as f:
         scaler = pickle.load(f)
     original_shape = X_full.shape
     X_reshaped = X_full.reshape(-1, original_shape[2])
@@ -92,9 +104,11 @@ def main():
         X_full_normalized, y_full, test_size=0.2, stratify=y_full, random_state=42
     )
     
-    X_test = np.load('data-gen/data/X_test.npy')
+    X_test = np.load(config.X_TEST_PATH)
+    # Normalize X_test for benchmarking
+    X_test = scaler.transform(X_test.reshape(-1, 8)).reshape(X_test.shape)
 
-    model_path = 'models/health_lstm_model.h5'
+    model_path = config.HEALTH_LSTM_MODEL_PATH
     quantized_model_path = quantize_model(model_path, X_train)
     
     # Benchmark the quantized model

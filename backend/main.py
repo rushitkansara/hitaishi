@@ -10,11 +10,16 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 's
 from inference_engine import HealthRiskPredictor
 from .twilio_service import send_alert
 
+# Import configuration
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import config
+
 app = FastAPI()
 
 # CORS Middleware
 origins = [
-    "http://localhost:3000",
+    config.FRONTEND_URL,
+    "http://localhost:3000", # For local development
     "localhost:3000"
 ]
 
@@ -27,13 +32,16 @@ app.add_middleware(
 )
 
 # Load the model and scaler
-MODEL_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'models', 'health_lstm_model.h5'))
-SCALER_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data-gen', 'data', 'scaler_params.pkl'))
+MODEL_PATH = config.HEALTH_MODEL_QUANTIZED_PATH
+SCALER_PATH = config.SCALER_PARAMS_PATH
 predictor = HealthRiskPredictor(MODEL_PATH, SCALER_PATH)
 
 class Sequence(BaseModel):
     patient_name: str
     sequence: list
+
+class Recipient(BaseModel):
+    number: str
 
 @app.get("/")
 def read_root():
@@ -53,3 +61,18 @@ def predict(data: Sequence):
         "risk_name": risk_name,
         "probabilities": probabilities
     }
+
+@app.post("/set_recipient")
+def set_recipient(data: Recipient):
+    with open("recipient_number.txt", "w") as f:
+        f.write(data.number)
+    return {"message": "Recipient number saved successfully."}
+
+@app.get("/get_recipient")
+def get_recipient():
+    try:
+        with open("recipient_number.txt", "r") as f:
+            number = f.read()
+        return {"number": number}
+    except FileNotFoundError:
+        return {"number": ""}

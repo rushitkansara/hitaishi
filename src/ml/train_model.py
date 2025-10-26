@@ -4,20 +4,24 @@ from sklearn.model_selection import train_test_split
 import tensorflow as tf
 import json
 import os
+from datetime import datetime
+
+# Import configuration
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+import config
 
 # Task 2.1: Data Loading & Preprocessing
 def load_and_prepare_data():
     print("--- Task 2.1: Loading and Preparing Data ---")
-    # Corrected paths based on project structure
-    base_data_path = 'data-gen/data'
     
     # Load base training data
-    X_base = np.load(os.path.join(base_data_path, 'training_sequences.npz'))['X_train']
-    y_base = np.load(os.path.join(base_data_path, 'training_labels.npy'))
+    X_base = np.load(config.TRAINING_SEQUENCES_PATH)['X_train']
+    y_base = np.load(config.TRAINING_LABELS_PATH)
     
     # Load augmented data
-    X_aug = np.load(os.path.join(base_data_path, 'augmented_sequences.npz'))['X_aug']
-    y_aug = np.load(os.path.join(base_data_path, 'augmented_labels.npy'))
+    X_aug = np.load(config.AUGMENTED_SEQUENCES_PATH)['X_aug']
+    y_aug = np.load(config.AUGMENTED_LABELS_PATH)
     
     # Combine
     X_full = np.concatenate([X_base, X_aug], axis=0)
@@ -33,8 +37,7 @@ def load_and_prepare_data():
     )
 
     # Load and fit scaler on training data only
-    scaler_path = os.path.join(base_data_path, 'scaler_params.pkl')
-    with open(scaler_path, 'rb') as scaler_file:
+    with open(config.SCALER_PARAMS_PATH, 'rb') as scaler_file:
         scaler = pickle.load(scaler_file)
     
     # Normalize the training and validation sets
@@ -83,7 +86,7 @@ def run_training(model, X_train, y_train, X_val, y_val):
     print("\n--- Task 2.3: Training Model ---")
     callbacks = [
         tf.keras.callbacks.ModelCheckpoint(
-            'models/best_model.h5',
+            config.BEST_MODEL_PATH,
             monitor='val_loss',
             save_best_only=True,
             verbose=1
@@ -101,7 +104,7 @@ def run_training(model, X_train, y_train, X_val, y_val):
             min_lr=0.00001,
             verbose=1
         ),
-        tf.keras.callbacks.TensorBoard(log_dir='logs/tensorboard', histogram_freq=1)
+        tf.keras.callbacks.TensorBoard(log_dir=config.TENSORBOARD_LOG_DIR, histogram_freq=1)
     ]
     
     history = model.fit(
@@ -114,12 +117,12 @@ def run_training(model, X_train, y_train, X_val, y_val):
     )
     
     # Save final model
-    model.save('models/health_lstm_model.h5')
+    model.save(config.HEALTH_LSTM_MODEL_PATH)
     
     # Save training history
     # Convert history to be JSON serializable
     history_dict = {key: [float(val) for val in values] for key, values in history.history.items()}
-    with open('models/training_history.json', 'w') as f:
+    with open(config.TRAINING_HISTORY_PATH, 'w') as f:
         json.dump(history_dict, f)
 
     print("Training complete. Final model and history saved.")
@@ -129,9 +132,9 @@ def save_test_data(X_test, y_test):
     print("\n--- Saving test data for later evaluation ---")
     # We need to save X_test and y_test for the evaluation script.
     # Let's save them in the data-gen/data directory as well.
-    np.save('data-gen/data/X_test.npy', X_test)
-    np.save('data-gen/data/y_test.npy', y_test)
-    print("Test data saved to 'data-gen/data/X_test.npy' and 'data-gen/data/y_test.npy'")
+    np.save(config.X_TEST_PATH, X_test)
+    np.save(config.Y_TEST_PATH, y_test)
+    print(f"Test data saved to '{config.X_TEST_PATH}' and '{config.Y_TEST_PATH}'")
 
 def save_model_metadata(model, X_train, y_train, history):
     print("\n--- Saving model metadata ---")
@@ -151,17 +154,14 @@ def save_model_metadata(model, X_train, y_train, history):
             "final_val_accuracy": history.history["val_accuracy"][-1]
         }
     }
-    with open('models/model_metadata.json', 'w') as f:
+    with open(config.MODEL_METADATA_PATH, 'w') as f:
         json.dump(metadata, f, indent=4)
-    print("Model metadata saved to 'models/model_metadata.json'")
+    print(f"Model metadata saved to '{config.MODEL_METADATA_PATH}'")
 
 if __name__ == '__main__':
-    from datetime import datetime
-    import json
-    import os
     # Create directories if they don't exist
-    os.makedirs('models', exist_ok=True)
-    os.makedirs('logs/tensorboard', exist_ok=True)
+    os.makedirs(config.MODELS_DIR, exist_ok=True)
+    os.makedirs(config.TENSORBOARD_LOG_DIR, exist_ok=True)
 
     # Run the pipeline
     X_train, X_val, X_test, y_train, y_val, y_test, scaler = load_and_prepare_data()

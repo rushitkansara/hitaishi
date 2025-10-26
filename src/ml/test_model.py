@@ -6,17 +6,22 @@ import pytest
 # This assumes inference_engine.py is in the same directory
 from inference_engine import HealthRiskPredictor
 
+# Import configuration
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+import config
+
 # Define paths at the top level
-MODEL_PATH = 'models/health_model_quantized.tflite'
-SCALER_PATH = 'data-gen/data/scaler_params.pkl'
-X_TEST_PATH = 'data-gen/data/X_test.npy'
-Y_TEST_PATH = 'data-gen/data/y_test.npy'
+MODEL_PATH = config.HEALTH_LSTM_MODEL_PATH # Use the unquantized model
+SCALER_PATH = config.SCALER_PARAMS_PATH
+X_TEST_PATH = config.X_TEST_PATH
+Y_TEST_PATH = config.Y_TEST_PATH
 
 @pytest.fixture(scope="module")
 def predictor():
     """Pytest fixture to initialize the HealthRiskPredictor once per module."""
     if not os.path.exists(MODEL_PATH) or not os.path.exists(SCALER_PATH):
-        pytest.fail("Model or scaler file not found. Run training and quantization first.")
+        pytest.fail("Model or scaler file not found. Run training first.")
     return HealthRiskPredictor(MODEL_PATH, SCALER_PATH)
 
 @pytest.fixture(scope="module")
@@ -30,7 +35,7 @@ def test_data():
 
 def test_predictor_initialization(predictor):
     """Tests if the predictor and its components are initialized correctly."""
-    assert predictor.interpreter is not None
+    assert predictor.model is not None # Changed from interpreter to model
     assert predictor.scaler is not None
     assert len(predictor.class_names) == 13
 
@@ -100,7 +105,7 @@ if __name__ == '__main__':
     
     if not all(os.path.exists(p) for p in [MODEL_PATH, SCALER_PATH, X_TEST_PATH, Y_TEST_PATH]):
         print("One or more required files are missing. Cannot run tests.")
-        print("Please run train and quantize scripts first.")
+        print("Please run train script first.")
     else:
         pred = predictor()
         data = test_data()

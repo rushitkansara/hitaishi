@@ -1,7 +1,7 @@
-fastapi
-uvicorn[standard]
-python-multipart
-twilio
-tensorflow
-scikit-learn
-numpy
+fastapi==0.120.0
+uvicorn==0.38.0
+python-multipart==0.0.20
+twilio==9.8.4
+tensorflow==2.16.2
+scikit-learn==1.7.2
+numpy==1.26.4

@@ -10,6 +10,15 @@ import seaborn as sns
 import os
 import json
 
+# Import configuration
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+import config
+
+# Import variables from the data generation script
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'data-gen')))
+from datagen import classes
+
 def evaluate_model(model, X_test, y_test, class_names):
     print("\n--- Task 2.4: Evaluating Model ---")
     # Predictions
@@ -42,9 +51,9 @@ def evaluate_model(model, X_test, y_test, class_names):
     plt.tight_layout()
     
     # Ensure models directory exists
-    os.makedirs('models', exist_ok=True)
-    plt.savefig('models/confusion_matrix.png', dpi=300)
-    print("\nConfusion matrix saved to 'models/confusion_matrix.png'")
+    os.makedirs(config.MODELS_DIR, exist_ok=True)
+    plt.savefig(config.CONFUSION_MATRIX_PATH, dpi=300)
+    print(f"\nConfusion matrix saved to '{config.CONFUSION_MATRIX_PATH}'")
 
     # Critical class performance
     critical_classes_indices = [i for i, name in enumerate(class_names) if name not in ['Stable', 'Monitor']]
@@ -63,7 +72,7 @@ def evaluate_model(model, X_test, y_test, class_names):
                 print(f"  - {class_names[cls_idx]} Recall: {recall:.4f}")
 
     # Save evaluation report
-    report_path = 'models/evaluation_report.txt'
+    report_path = config.EVALUATION_REPORT_PATH
     with open(report_path, 'w') as f:
         f.write("Hitaishi Model Evaluation Report\n")
         f.write("="*30 + "\n")
@@ -78,26 +87,20 @@ def evaluate_model(model, X_test, y_test, class_names):
 def main():
     import pickle
     # Class names from the spec
-    class_names = [
-        'Stable', 'Monitor', 'Heart_Attack', 'Arrhythmia',
-        'Heart_Failure', 'Hypoglycemia', 'Hyperglycemia_DKA',
-        'Respiratory_Distress', 'Sepsis', 'Stroke',
-        'Shock', 'Hypertensive_Crisis', 'Fall_Unconscious'
-    ]
+    class_names = [classes[i] for i in sorted(classes.keys())]
 
     # Load the trained model
     print("Loading trained model: 'models/best_model.h5'")
     # Load the best model for a more reliable evaluation
-    model = tf.keras.models.load_model('models/best_model.h5')
+    model = tf.keras.models.load_model(config.BEST_MODEL_PATH)
 
     # Load the test data
     print("Loading test data...")
-    X_test = np.load('data-gen/data/X_test.npy')
-    y_test = np.load('data-gen/data/y_test.npy')
+    X_test = np.load(config.X_TEST_PATH)
+    y_test = np.load(config.Y_TEST_PATH)
 
     # Load the scaler and normalize the test data
-    scaler_path = 'data-gen/data/scaler_params.pkl'
-    with open(scaler_path, 'rb') as scaler_file:
+    with open(config.SCALER_PARAMS_PATH, 'rb') as scaler_file:
         scaler = pickle.load(scaler_file)
     X_test = scaler.transform(X_test.reshape(-1, 8)).reshape(X_test.shape)
 

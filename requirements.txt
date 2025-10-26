@@ -1,6 +1,7 @@
-tensorflow
-scikit-learn
-matplotlib
-seaborn
-pytest
-numpy
+tensorflow==2.16.2
+scikit-learn==1.7.2
+matplotlib==3.10.7
+seaborn==0.13.2
+pytest==8.4.2
+numpy==1.26.4
+python-dotenv==0.21.0

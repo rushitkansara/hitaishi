@@ -5,30 +5,39 @@ import pickle
 from typing import Tuple, Dict, List
 import os
 
+# Import configuration
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+import config
+
+# Import variables from the data generation script
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'data-gen')))
+from datagen import classes
+
 class HealthRiskPredictor:
     """
-    Real-time health risk prediction engine using a Keras model.
+    Real-time health risk prediction engine using a quantized TFLite model.
     """
 
     def __init__(self, model_path: str, scaler_path: str):
         """
-        Initializes the predictor by loading the Keras model and the scaler.
+        Initializes the predictor by loading the TFLite model and the scaler.
         """
-        print(f"Initializing HealthRiskPredictor with model: {model_path}")
-        # Load Keras model
-        self.model = tf.keras.models.load_model(model_path)
+        print(f"Initializing HealthRiskPredictor with TFLite model: {model_path}")
+        # Load TFLite model and allocate tensors.
+        self.interpreter = tf.lite.Interpreter(model_path=model_path)
+        self.interpreter.allocate_tensors()
+
+        # Get input and output tensors.
+        self.input_details = self.interpreter.get_input_details()
+        self.output_details = self.interpreter.get_output_details()
 
         # Load scaler
         with open(scaler_path, 'rb') as f:
             self.scaler = pickle.load(f)
 
         # Class names from the spec
-        self.class_names = [
-            'Stable', 'Monitor', 'Heart_Attack', 'Arrhythmia',
-            'Heart_Failure', 'Hypoglycemia', 'Hyperglycemia_DKA',
-            'Respiratory_Distress', 'Sepsis', 'Stroke',
-            'Shock', 'Hypertensive_Crisis', 'Fall_Unconscious'
-        ]
+        self.class_names = [classes[i] for i in sorted(classes.keys())]
         print("Predictor initialized successfully.")
 
     def predict(self, sequence: np.ndarray) -> Tuple[int, float, str, Dict[str, float]]:
@@ -56,7 +65,9 @@ class HealthRiskPredictor:
         seq_input = seq_normalized.reshape(1, 60, 8).astype(np.float32)
 
         # Run inference
-        output = self.model.predict(seq_input)[0]
+        self.interpreter.set_tensor(self.input_details[0]['index'], seq_input)
+        self.interpreter.invoke()
+        output = self.interpreter.get_tensor(self.output_details[0]['index'])[0]
 
         # Parse results
         risk_level = int(np.argmax(output))
@@ -88,8 +99,8 @@ if __name__ == '__main__':
     print("--- Inference Engine Usage Example ---")
     
     # Define paths
-    MODEL_PATH = 'models/health_lstm_model.h5' # Use the unquantized model
-    SCALER_PATH = 'data-gen/data/scaler_params.pkl'
+    MODEL_PATH = config.HEALTH_LSTM_MODEL_PATH
+    SCALER_PATH = config.SCALER_PARAMS_PATH
     
     # Check if model and scaler exist
     if not os.path.exists(MODEL_PATH) or not os.path.exists(SCALER_PATH):

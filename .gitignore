@@ -25,3 +25,6 @@ models/*.txt
 
 # Environment variables
 .env
+
+# Data generation code (no longer needed after training and quantization)
+data-gen/

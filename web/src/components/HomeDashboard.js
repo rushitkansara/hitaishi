@@ -8,9 +8,26 @@ const HomeDashboard = () => {
   const navigate = useNavigate();
   const [simulationResults, setSimulationResults] = useState([]);
   const [isSimulating, setIsSimulating] = useState(false);
+  const [recipientNumber, setRecipientNumber] = useState('');
 
   const handlePatientClick = (patientId) => {
     navigate(`/patient/${patientId}`);
+  };
+
+  const handleSaveRecipientNumber = async () => {
+    try {
+      await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}/set_recipient`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ number: recipientNumber }),
+      });
+      alert('Recipient number saved successfully!');
+    } catch (error) {
+      console.error("Error saving recipient number:", error);
+      alert('Failed to save recipient number.');
+    }
   };
 
   const runSimulation = async () => {
@@ -19,7 +36,7 @@ const HomeDashboard = () => {
 
     for (const data of simulationData) {
       try {
-        const response = await fetch('http://localhost:8000/predict', {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}/predict`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -53,6 +70,26 @@ const HomeDashboard = () => {
         <button className="btn btn-primary btn-lg" onClick={runSimulation} disabled={isSimulating}>
           {isSimulating ? 'Running Simulation...' : 'Run Emergency Simulation'}
         </button>
+      </div>
+
+      {/* Recipient Number Control */}
+      <div className="container text-center my-4">
+        <div className="row justify-content-center">
+          <div className="col-md-6">
+            <div className="input-group">
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Enter recipient phone number"
+                value={recipientNumber}
+                onChange={(e) => setRecipientNumber(e.target.value)}
+              />
+              <button className="btn btn-outline-secondary" type="button" onClick={handleSaveRecipientNumber}>
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Simulation Results */}
