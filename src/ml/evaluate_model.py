@@ -95,12 +95,12 @@ def main():
     model = tf.keras.models.load_model(config.BEST_MODEL_PATH)
 
     # Load the test data
-    print("Loading test data...")
-    X_test = np.load(config.X_TEST_PATH)
-    y_test = np.load(config.Y_TEST_PATH)
+    print("Loading procedural test data...")
+    X_test = np.load(config.PROCEDURAL_X_TEST_PATH)['X_test']
+    y_test = np.load(config.PROCEDURAL_Y_TEST_PATH)
 
     # Load the scaler and normalize the test data
-    with open(config.SCALER_PARAMS_PATH, 'rb') as scaler_file:
+    with open(config.PROCEDURAL_SCALER_PATH, 'rb') as scaler_file:
         scaler = pickle.load(scaler_file)
     X_test = scaler.transform(X_test.reshape(-1, 8)).reshape(X_test.shape)
 

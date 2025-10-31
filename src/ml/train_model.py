@@ -13,42 +13,37 @@ import config
 
 # Task 2.1: Data Loading & Preprocessing
 def load_and_prepare_data():
-    print("--- Task 2.1: Loading and Preparing Data ---")
+    print("--- Task 2.1: Loading and Preparing Procedural Data ---")
     
-    # Load base training data
-    X_base = np.load(config.TRAINING_SEQUENCES_PATH)['X_train']
-    y_base = np.load(config.TRAINING_LABELS_PATH)
+    # Load the new procedural training data
+    X_train_full = np.load(config.PROCEDURAL_X_TRAIN_PATH)['X_train']
+    y_train_full = np.load(config.PROCEDURAL_Y_TRAIN_PATH)
     
-    # Load augmented data
-    X_aug = np.load(config.AUGMENTED_SEQUENCES_PATH)['X_aug']
-    y_aug = np.load(config.AUGMENTED_LABELS_PATH)
-    
-    # Combine
-    X_full = np.concatenate([X_base, X_aug], axis=0)
-    y_full = np.concatenate([y_base, y_aug], axis=0)
-    print(f"Combined data shape: X={X_full.shape}, y={y_full.shape}")
-    
-    # Split first to keep a raw version of X_test
-    X_train_val, X_test, y_train_val, y_test = train_test_split(
-        X_full, y_full, test_size=0.1, stratify=y_full, random_state=42
-    )
+    # Load the procedural test data (for saving later, not for training)
+    X_test = np.load(config.PROCEDURAL_X_TEST_PATH)['X_test']
+    y_test = np.load(config.PROCEDURAL_Y_TEST_PATH)
+
+    print(f"Total training samples: {len(y_train_full)}")
+    print(f"Total testing samples: {len(y_test)}")
+
+    # Split training data into training and validation sets
     X_train, X_val, y_train, y_val = train_test_split(
-        X_train_val, y_train_val, test_size=0.111, stratify=y_train_val, random_state=42 # 0.111 * 0.9 = 0.1
+        X_train_full, y_train_full, test_size=0.2, stratify=y_train_full, random_state=42
     )
 
-    # Load and fit scaler on training data only
-    with open(config.SCALER_PARAMS_PATH, 'rb') as scaler_file:
+    # Load the procedural scaler
+    with open(config.PROCEDURAL_SCALER_PATH, 'rb') as scaler_file:
         scaler = pickle.load(scaler_file)
     
     # Normalize the training and validation sets
-    X_train = scaler.transform(X_train.reshape(-1, 8)).reshape(X_train.shape)
-    X_val = scaler.transform(X_val.reshape(-1, 8)).reshape(X_val.shape)
+    X_train = scaler.transform(X_train.reshape(-1, 7)).reshape(X_train.shape)
+    X_val = scaler.transform(X_val.reshape(-1, 7)).reshape(X_val.shape)
 
     print(f"  X_train.shape = {X_train.shape}")
     print(f"  y_train.shape = {y_train.shape}")
     print(f"  X_val.shape = {X_val.shape}")
     print(f"  y_val.shape = {y_val.shape}")
-    print(f"  X_test.shape = {X_test.shape} (raw)")
+    print(f"  X_test.shape = {X_test.shape} (from dedicated test set)")
     print(f"  y_test.shape = {y_test.shape}")
     print("Data preparation complete.")
     
@@ -58,7 +53,7 @@ def load_and_prepare_data():
 def build_model():
     print("\n--- Task 2.2: Building LSTM Model ---")
     model = tf.keras.models.Sequential([
-        tf.keras.layers.LSTM(32, return_sequences=True, input_shape=(60, 8)),
+        tf.keras.layers.LSTM(32, return_sequences=True, input_shape=(60, 7)),
         tf.keras.layers.Dropout(0.3),
         tf.keras.layers.BatchNormalization(),
         
@@ -128,19 +123,11 @@ def run_training(model, X_train, y_train, X_val, y_val):
     print("Training complete. Final model and history saved.")
     return model, history
 
-def save_test_data(X_test, y_test):
-    print("\n--- Saving test data for later evaluation ---")
-    # We need to save X_test and y_test for the evaluation script.
-    # Let's save them in the data-gen/data directory as well.
-    np.save(config.X_TEST_PATH, X_test)
-    np.save(config.Y_TEST_PATH, y_test)
-    print(f"Test data saved to '{config.X_TEST_PATH}' and '{config.Y_TEST_PATH}'")
-
 def save_model_metadata(model, X_train, y_train, history):
     print("\n--- Saving model metadata ---")
     metadata = {
         "model_name": "health_lstm_model",
-        "version": "1.0",
+        "version": "2.0", # Updated version for the new dataset
         "training_timestamp": str(datetime.now()),
         "training_data_shape": {
             "X_train": X_train.shape,
@@ -163,13 +150,12 @@ if __name__ == '__main__':
     os.makedirs(config.MODELS_DIR, exist_ok=True)
     os.makedirs(config.TENSORBOARD_LOG_DIR, exist_ok=True)
 
-    # Run the pipeline
+    # Run the pipeline with the new procedural data
     X_train, X_val, X_test, y_train, y_val, y_test, scaler = load_and_prepare_data()
     model = build_model()
     trained_model, history = run_training(model, X_train, y_train, X_val, y_val)
     
-    # The evaluation script will need the test set. Let's save it.
-    save_test_data(X_test, y_test)
+    # Save metadata
     save_model_metadata(trained_model, X_train, y_train, history)
     
-    print("\nSprint 2 - Training script finished successfully!")
+    print("\nNew model training finished successfully!")

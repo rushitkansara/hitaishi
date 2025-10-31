@@ -9,7 +9,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.
 import config
 
 # Import variables from the data generation script
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'data-gen')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'data_gen')))
 from datagen import classes
 
 
@@ -26,7 +26,7 @@ def quantize_model(model_path, X_train):
     def representative_dataset():
         for i in range(100):
             sample = X_train[np.random.randint(0, len(X_train))]
-            yield [sample.reshape(1, 60, 8).astype(np.float32)]
+            yield [sample.reshape(1, 60, 7).astype(np.float32)]
 
     # Convert to TFLite with INT8 quantization from SavedModel
     converter = tf.lite.TFLiteConverter.from_saved_model(saved_model_dir)
@@ -65,7 +65,7 @@ def benchmark_inference(model_path, X_test, num_runs=100):
 
     times = []
     for i in range(num_runs):
-        sample = X_test[i % len(X_test)].reshape(1, 60, 8).astype(np.float32)
+        sample = X_test[i % len(X_test)].reshape(1, 60, 7).astype(np.float32)
 
         start = time.perf_counter()
         interpreter.set_tensor(input_details[0]['index'], sample)
@@ -85,34 +85,33 @@ def main():
     # We need X_train for the representative dataset and X_test for benchmarking
     print("Loading data for quantization and benchmarking...")
     
-    X_base = np.load(config.TRAINING_SEQUENCES_PATH)['X_train']
-    X_aug = np.load(config.AUGMENTED_SEQUENCES_PATH)['X_aug']
-    X_full = np.concatenate([X_base, X_aug], axis=0)
-    
-    y_base = np.load(config.TRAINING_LABELS_PATH)
-    y_aug = np.load(config.AUGMENTED_LABELS_PATH)
-    y_full = np.concatenate([y_base, y_aug], axis=0)
+    # Load procedural training data for representative dataset
+    X_train_full = np.load(config.PROCEDURAL_X_TRAIN_PATH)['X_train']
+    y_train_full = np.load(config.PROCEDURAL_Y_TRAIN_PATH)
 
-    with open(config.SCALER_PARAMS_PATH, 'rb') as f:
+    # Load procedural test data for benchmarking
+    X_test_full = np.load(config.PROCEDURAL_X_TEST_PATH)['X_test']
+    y_test_full = np.load(config.PROCEDURAL_Y_TEST_PATH)
+
+    # Load the procedural scaler
+    with open(config.PROCEDURAL_SCALER_PATH, 'rb') as f:
         scaler = pickle.load(f)
-    original_shape = X_full.shape
-    X_reshaped = X_full.reshape(-1, original_shape[2])
-    X_normalized = scaler.transform(X_reshaped)
-    X_full_normalized = X_normalized.reshape(original_shape)
 
-    X_train, X_temp, _, _ = train_test_split(
-        X_full_normalized, y_full, test_size=0.2, stratify=y_full, random_state=42
-    )
+    # Normalize X_train for representative dataset (only a subset is needed)
+    X_train_normalized = scaler.transform(X_train_full.reshape(-1, 7)).reshape(X_train_full.shape)
     
-    X_test = np.load(config.X_TEST_PATH)
     # Normalize X_test for benchmarking
-    X_test = scaler.transform(X_test.reshape(-1, 8)).reshape(X_test.shape)
+    X_test_normalized = scaler.transform(X_test_full.reshape(-1, 7)).reshape(X_test_full.shape)
 
-    model_path = config.HEALTH_LSTM_MODEL_PATH
-    quantized_model_path = quantize_model(model_path, X_train)
+    # Use a subset of X_train_normalized for the representative dataset
+    # This is important for full integer quantization
+    X_train_representative = X_train_normalized[np.random.choice(X_train_normalized.shape[0], 1000, replace=False)]
+
+    model_path = config.BEST_MODEL_PATH # Quantize the best performing model
+    quantized_model_path = quantize_model(model_path, X_train_representative)
     
     # Benchmark the quantized model
-    benchmark_inference(quantized_model_path, X_test)
+    benchmark_inference(quantized_model_path, X_test_normalized)
     
     print("\nQuantization script finished.")
 

@@ -11,7 +11,8 @@ web/build/
 logs/
 
 # Data
-data-gen/data/
+data_gen/data/
+web/src/data/simulationData.js
 
 # Models
 models/*.h5
@@ -26,5 +27,5 @@ models/*.txt
 # Environment variables
 .env
 
-# Data generation code (no longer needed after training and quantization)
-data-gen/
+# Recipient phone number
+recipient_number.txt

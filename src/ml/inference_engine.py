@@ -11,8 +11,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.
 import config
 
 # Import variables from the data generation script
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'data-gen')))
-from datagen import classes
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'data_gen')))
+from data_gen.datagen import classes
 
 class HealthRiskPredictor:
     """
@@ -45,7 +45,7 @@ class HealthRiskPredictor:
         Predicts health risk from a single 60-second vital sign sequence.
 
         Args:
-            sequence: numpy array of shape (60, 8) with raw vital sign data.
+            sequence: numpy array of shape (60, 7) with raw vital sign data.
 
         Returns:
             A tuple containing:
@@ -54,15 +54,15 @@ class HealthRiskPredictor:
             - risk_name (str): The name of the predicted class.
             - probabilities (Dict[str, float]): A dictionary of all class probabilities.
         """
-        if sequence.shape != (60, 8):
-            raise ValueError(f"Expected input shape (60, 8), but got {sequence.shape}")
+        if sequence.shape != (60, 7):
+            raise ValueError(f"Expected input shape (60, 7), but got {sequence.shape}")
 
         # Normalize the sequence
-        seq_reshaped = sequence.reshape(-1, 8)
+        seq_reshaped = sequence.reshape(-1, 7)
         seq_normalized = self.scaler.transform(seq_reshaped)
         
         # Reshape for the model and ensure correct type
-        seq_input = seq_normalized.reshape(1, 60, 8).astype(np.float32)
+        seq_input = seq_normalized.reshape(1, 60, 7).astype(np.float32)
 
         # Run inference
         self.interpreter.set_tensor(self.input_details[0]['index'], seq_input)
@@ -83,7 +83,7 @@ class HealthRiskPredictor:
         Performs batch prediction on multiple sequences.
 
         Args:
-            sequences: A numpy array of sequences, shape (num_sequences, 60, 8).
+            sequences: A numpy array of sequences, shape (num_sequences, 60, 7).
 
         Returns:
             A list of tuples, where each tuple contains (risk_level, confidence, risk_name).
@@ -115,7 +115,7 @@ if __name__ == '__main__':
 
         # Create a random test sequence
         print("\n--- Testing with a random sequence ---")
-        test_seq = np.random.rand(60, 8) * 100 # Use a more realistic range
+        test_seq = np.random.rand(60, 7) * 100 # Use a more realistic range
         
         try:
             risk, confidence, name, probs = predictor.predict(test_seq)

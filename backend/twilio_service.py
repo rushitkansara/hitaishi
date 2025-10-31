@@ -9,17 +9,14 @@ import config
 
 client = Client(config.TWILIO_ACCOUNT_SID, config.TWILIO_AUTH_TOKEN)
 
-def send_alert(patient_name: str, condition: str):
-    try:
-        with open("recipient_number.txt", "r") as f:
-            recipient_number = f.read()
-    except FileNotFoundError:
-        print("Recipient number not found. Please set it in the web interface.")
+def send_alert(patient_name: str, condition: str, recipient_phone_number: str):
+    if not recipient_phone_number:
+        print("Recipient phone number not provided. Cannot send SMS alert.")
         return None
 
     try:
         message = client.messages.create(
-            to=recipient_number,
+            to=recipient_phone_number,
             from_=config.TWILIO_PHONE_NUMBER,
             body=f"ALERT: Patient {patient_name} is in a critical condition: {condition}"
         )

@@ -10,7 +10,7 @@ load_dotenv()
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Data Generation Paths
-DATA_GEN_DIR = os.path.join(BASE_DIR, 'data-gen')
+DATA_GEN_DIR = os.path.join(BASE_DIR, 'data_gen')
 DATA_DIR = os.path.join(DATA_GEN_DIR, 'data')
 
 TRAINING_SEQUENCES_PATH = os.path.join(DATA_DIR, 'training_sequences.npz')
@@ -23,6 +23,13 @@ GENERATION_REPORT_PATH = os.path.join(DATA_DIR, 'generation_report.txt')
 SAMPLE_VISUALIZATIONS_PATH = os.path.join(DATA_DIR, 'sample_visualizations.png')
 X_TEST_PATH = os.path.join(DATA_DIR, 'X_test.npy')
 Y_TEST_PATH = os.path.join(DATA_DIR, 'y_test.npy')
+
+# Procedural Data Paths
+PROCEDURAL_X_TRAIN_PATH = os.path.join(DATA_DIR, 'procedural_X_train.npz')
+PROCEDURAL_Y_TRAIN_PATH = os.path.join(DATA_DIR, 'procedural_y_train.npy')
+PROCEDURAL_X_TEST_PATH = os.path.join(DATA_DIR, 'procedural_X_test.npz')
+PROCEDURAL_Y_TEST_PATH = os.path.join(DATA_DIR, 'procedural_y_test.npy')
+PROCEDURAL_SCALER_PATH = os.path.join(DATA_DIR, 'procedural_scaler.pkl')
 
 # Model Paths
 MODELS_DIR = os.path.join(BASE_DIR, 'models')
