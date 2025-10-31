@@ -380,12 +380,20 @@ This will launch the web application in your browser (usually at `http://localho
 
 ## Demo / Screenshots
 
-
-## Future Enhancements
-(Placeholder for future ideas like more ML models, advanced UI features, etc.)
+<img width="1800" height="5200" alt="image" src="https://github.com/user-attachments/assets/2019770f-7ba8-4e9a-a4d6-9826b55a144d" />
+<img width="1461" height="669" alt="Screenshot 2025-10-31 at 14 20 27" src="https://github.com/user-attachments/assets/68970b04-2fe5-47bb-9884-efbf6ad72c54" />
+<img width="1461" height="873" alt="Screenshot 2025-10-31 at 14 20 39" src="https://github.com/user-attachments/assets/bae0b14e-90bb-4baf-97da-0f73c0c04dfb" />
+<img width="1461" height="1007" alt="Screenshot 2025-10-31 at 14 21 11" src="https://github.com/user-attachments/assets/4c483299-816f-4f52-86c8-baca24483d1a" />
+<img width="1461" height="861" alt="Screenshot 2025-10-31 at 14 21 23" src="https://github.com/user-attachments/assets/ebee0c03-3b15-40eb-ae18-fa864ba527a8" />
+<img width="1461" height="437" alt="Screenshot 2025-10-31 at 14 21 34" src="https://github.com/user-attachments/assets/8d2def91-5186-49e1-ab41-953f80dd0cc8" />
+![IMG_FC5B84776032-1](https://github.com/user-attachments/assets/88c84856-f4fb-4e05-be57-ecb51194f32f)
 
 ## License
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Contact / Contributors
-(Placeholder for contact information or contributor list)
+
+Rushit Kansara
+Aniket Kumar
+Bhavya
+Nitish Kumar Yadav
