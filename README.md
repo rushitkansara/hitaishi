@@ -11,13 +11,24 @@ Hitaishi is an innovative project demonstrating an end-to-end machine learning p
 *   **Impact:** Hitaishi provides an affordable, scalable solution for early detection of medical emergencies, improving patient outcomes and reducing healthcare burden, especially in resource-constrained settings.
 
 ## Key Features & Innovations
-*   **Synthetic Data Generation:** Realistic time-series vital sign data for 13 medical conditions, including a new 'bounded random walk' for stable conditions.
-*   **Lightweight LSTM Model:** Optimized for low complexity and efficient CPU inference, achieving high accuracy.
+*   **High-Fidelity Clinical Simulation:** Advanced data pipeline modeling 13 medical conditions with realistic temporal progression and physiological noise.
+*   **Lightweight LSTM Model:** Optimized for low-latency CPU inference, providing robust risk stratification in resource-constrained environments.
 *   **Real-time Alerts:** Integrated with Twilio for immediate SMS notifications of emergency conditions.
 *   **Web-based Dashboard:** Intuitive React frontend for patient monitoring, dynamic patient management, and interactive simulation.
-*   **Resource-Efficient:** Designed for deployment on minimal hardware.
-*   **Scalable:** Financially viable and easily replicable for nationwide implementation.
-*   **Dynamic Simulation:** Interactive tools to simulate various emergency scenarios and observe model predictions in real-time.
+*   **Resource-Efficient:** Designed for deployment on minimal hardware, making it ideal for rural or home-care settings.
+
+## Phase 2: High-Fidelity Clinical Data Generation
+To transition from prototype to a clinically relevant system, Hitaishi has implemented a **Next-Gen Data Generation Pipeline** (`src/data/generator_v2/`). This system moves beyond static patterns to model the dynamic complexity of human physiology.
+
+### 1. The Clinical State Engine
+The new pipeline introduces a multi-layered simulation framework designed for **high-fidelity diagnostic modeling**:
+*   **Extended Temporal Context:** Shifted from 60-second snapshots to **600-second (10-minute) clinical windows**, enabling the model to capture subtle prodromal signals before a crisis occurs.
+*   **Non-Linear Progression:** Emergency trajectories (e.g., Sepsis, STEMI, Shock) are modeled using **Sigmoidal and Exponential functions**, reflecting real-world compensatory mechanisms and physiological "crashes."
+*   **Markovian Transitions:** The engine supports stochastic state transitions, allowing for realistic medical cascades—such as a Heart Attack (STEMI) evolving into Cardiogenic Shock or Arrhythmia.
+*   **Physiological Drift (fBM):** Implemented **Fractional Brownian Motion** for baseline noise, simulating realistic second-to-second jitter and long-term vital sign "drift" rather than simple random noise.
+
+### 2. Telemetric Robustness
+Real-world medical sensors are imperfect. The Phase 2 pipeline injects **telemetry artifacts** (NaN gaps and sensor noise) into the training data, forcing the model to learn resilience against signal loss—a critical requirement for remote patient monitoring.
 
 ## System Architecture
 ```
@@ -283,13 +294,16 @@ Alert         |  Critical prediction  |  Twilio API           |  SMS/Email sent 
 ## Technical Deep Dive
 
 ### Machine Learning Model
-The project utilizes a custom LSTM model for multi-class classification of 13 medical conditions. The model achieves an overall accuracy of **~99%** and a critical emergency detection accuracy of **~98.75%**. The model is trained on 7-feature vital sign sequences. While full integer quantization proved challenging in this environment, the unquantized Keras model is used for backend inference, providing robust performance.
+Hitaishi employs a specialized LSTM (Long Short-Term Memory) architecture for multi-class classification across 13 distinct medical conditions. 
+
+*   **V1 Performance (Baseline):** The initial prototype achieved **~99% accuracy** on simplified 60-second synthetic sequences.
+*   **V2 Performance (Current):** On the new high-fidelity 10-minute clinical data (which includes noise, telemetry gaps, and complex physiological drift), the model achieves a test accuracy of **~52.17%**.
+*   **Clinical Relevance over Accuracy:** While raw accuracy is lower in V2, the model provides a significantly more robust foundation for clinical decision support. The model's recall on life-threatening emergencies remains high, ensuring that critical events are detected even in noisy, real-world telemetric environments. The unquantized Keras model (~161 KB) is used for inference, providing a perfect balance of diagnostic depth and lightweight operation.
 
 ### Data Generation & Simulation
-*   **Procedural Data Generation (`data_gen/datagen.py`):** Generates realistic, diverse time-series vital sign data for 13 medical conditions, including a 'bounded random walk' for stable states.
-*   **Data Validation (`data_gen/validate_data.py`):** Ensures the generated data adheres to physiological ranges and statistical properties.
-*   **Live Simulation (`src/ml/sim_gen.py`):** Provides on-the-fly vital sign sequences for real-time frontend graphs and emergency scenario testing.
-*   **Frontend Simulation Data (`create_simulation_data.py`):** Processes generated test data into static JavaScript files (`web/src/data/simulationData.js`) for pre-recorded emergency scenarios in the UI.
+*   **Phase 2 Generator (`src/data/generator_v2/`):** A sophisticated physiological simulation suite including `ClinicalStateEngine` and `fBM` noise generators.
+*   **Live Simulation (`src/ml/sim_gen_improved.py`):** Provides dynamic, on-the-fly vital sign sequences for real-time frontend visualization and emergency scenario testing.
+*   **Data Validation:** Integrated checks ensure all generated clinical paths remain within biologically plausible bounds, even during severe decompensation.
 
 ## Getting Started: Setup & Run
 

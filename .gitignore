@@ -12,14 +12,28 @@ logs/
 
 # Data
 data_gen/data/
+src/data_v2/*.npz
 web/src/data/simulationData.js
 
-# Models
+# Models & Experiments
 models/*.h5
 models/*.tflite
+models/*.keras
 models/*.json
 models/*.png
 models/*.txt
+experiments/
+
+# Extra MD Files & Internal Documentation
+GEMINI.md
+LOGS.md
+CHANGELOG.md
+FEEDBACK_FORM.md
+project_artifacts_and_assumptions.md
+data-gen-spec.txt
+data-interpretation.txt
+stack.txt
+.context/
 
 # OS specific
 .DS_Store
