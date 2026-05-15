@@ -20,7 +20,7 @@ try:
     import config
     from src.ml.sim_gen import generate_patient_specific_stable_sequence, generate_patient_specific_emergency_sequence
     from src.ml.simulation_manager import get_sim_manager
-    from backend.database import get_db, Patient, EmergencyContact, init_db
+    from api.database import get_db, Patient, EmergencyContact, init_db
     from sqlalchemy.orm import Session
     from sqlalchemy.exc import SQLAlchemyError
     logger.info("Modules imported successfully")
@@ -184,7 +184,7 @@ async def init_simulation(profile: PatientProfile, db: Session = Depends(get_db)
         print(f"DEBUG: init_simulation error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-from backend.verification_service import send_verification_sms, verify_contact_code
+from api.verification_service import send_verification_sms, verify_contact_code
 
 @app.post("/api/v1_2/contacts/{contact_id}/verify/send")
 def send_contact_verification(contact_id: str, patient_name: str, phone: str):
