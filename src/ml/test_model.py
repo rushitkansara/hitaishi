@@ -12,8 +12,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.
 import config
 
 # Define paths at the top level
-MODEL_PATH = config.HEALTH_LSTM_MODEL_PATH # Use the unquantized model
-SCALER_PATH = config.SCALER_PARAMS_PATH
+MODEL_PATH = config.MODEL_V1_2_TFLITE_PATH # Use the TFLite model
+SCALER_PATH = config.DATA_PROCEDURAL_SCALER_PATH # Updated to procedural scaler
 X_TEST_PATH = config.X_TEST_PATH
 Y_TEST_PATH = config.Y_TEST_PATH
 

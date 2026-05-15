@@ -10,64 +10,57 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 import config
 
-# Import variables from the data generation script
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'data_gen')))
-from data_gen.datagen import classes
+import tensorflow as tf
+import numpy as np
+import pickle
+from typing import Tuple, Dict, List
+import os
+
+# Import configuration
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+import config
 
 class HealthRiskPredictor:
     """
-    Real-time health risk prediction engine using a quantized TFLite model.
+    Real-time health risk prediction engine using a Keras model.
     """
 
     def __init__(self, model_path: str, scaler_path: str):
         """
-        Initializes the predictor by loading the TFLite model and the scaler.
+        Initializes the predictor by loading the Keras model.
         """
-        print(f"Initializing HealthRiskPredictor with TFLite model: {model_path}")
-        # Load TFLite model and allocate tensors.
-        self.interpreter = tf.lite.Interpreter(model_path=model_path)
-        self.interpreter.allocate_tensors()
-
-        # Get input and output tensors.
-        self.input_details = self.interpreter.get_input_details()
-        self.output_details = self.interpreter.get_output_details()
-
+        print(f"Initializing HealthRiskPredictor with Keras model: {model_path}")
+        self.model = tf.keras.models.load_model(model_path)
+        
         # Load scaler
         with open(scaler_path, 'rb') as f:
             self.scaler = pickle.load(f)
 
-        # Class names from the spec
-        self.class_names = [classes[i] for i in sorted(classes.keys())]
-        print("Predictor initialized successfully.")
+        # Class names aligned with V2 model (13 classes)
+        self.class_names = [
+            "Stable", "Monitor", "Heart_Attack", "Arrhythmia", "Heart_Failure",
+            "Hypoglycemia", "Hyperglycemia_DKA", "Respiratory_Distress", "Sepsis",
+            "Stroke", "Shock", "Hypertensive_Crisis", "Fall_Unconscious"
+        ]
+        print(f"Predictor initialized successfully with {len(self.class_names)} classes.")
 
     def predict(self, sequence: np.ndarray) -> Tuple[int, float, str, Dict[str, float]]:
         """
-        Predicts health risk from a single 60-second vital sign sequence.
-
-        Args:
-            sequence: numpy array of shape (60, 7) with raw vital sign data.
-
-        Returns:
-            A tuple containing:
-            - risk_level (int): The predicted class index (0-12).
-            - confidence (float): The model's confidence in the prediction (0-1).
-            - risk_name (str): The name of the predicted class.
-            - probabilities (Dict[str, float]): A dictionary of all class probabilities.
+        Predicts health risk from a 600-second vital sign sequence.
         """
-        if sequence.shape != (60, 7):
-            raise ValueError(f"Expected input shape (60, 7), but got {sequence.shape}")
+        if sequence.shape != (600, 7):
+            raise ValueError(f"Expected input shape (600, 7), but got {sequence.shape}")
 
         # Normalize the sequence
         seq_reshaped = sequence.reshape(-1, 7)
         seq_normalized = self.scaler.transform(seq_reshaped)
         
-        # Reshape for the model and ensure correct type
-        seq_input = seq_normalized.reshape(1, 60, 7).astype(np.float32)
+        # Reshape for the model (1, 600, 7)
+        seq_input = seq_normalized.reshape(1, 600, 7).astype(np.float32)
 
-        # Run inference
-        self.interpreter.set_tensor(self.input_details[0]['index'], seq_input)
-        self.interpreter.invoke()
-        output = self.interpreter.get_tensor(self.output_details[0]['index'])[0]
+        # Run model inference
+        output = self.model.predict(seq_input)[0]
 
         # Parse results
         risk_level = int(np.argmax(output))
@@ -81,12 +74,6 @@ class HealthRiskPredictor:
     def predict_batch(self, sequences: np.ndarray) -> List[Tuple[int, float, str]]:
         """
         Performs batch prediction on multiple sequences.
-
-        Args:
-            sequences: A numpy array of sequences, shape (num_sequences, 60, 7).
-
-        Returns:
-            A list of tuples, where each tuple contains (risk_level, confidence, risk_name).
         """
         predictions = []
         for seq in sequences:

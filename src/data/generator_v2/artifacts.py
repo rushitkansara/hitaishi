@@ -39,14 +39,14 @@ class TelemetryArtifacts:
         return noisy
 
     def inject_data_loss(self, vitals: Dict[str, float]) -> Dict[str, float]:
-        """Simulates intermittent sensor failure by returning NaNs."""
+        """Simulates intermittent sensor failure without creating NaNs."""
         processed = vitals.copy()
         
-        # SpO2 and HR are most prone to dropout (Pleth/ECG leads)
-        if random.random() < self.base_loss_rate:
-            processed['spo2'] = np.nan
-        if random.random() < 0.05: # Leads loose
-            processed['heart_rate'] = np.nan
+        # Reduced loss rates for demonstration
+        if random.random() < (self.base_loss_rate * 0.2): 
+            processed['spo2'] = 0.0 # Use 0 instead of NaN to avoid graph issues
+        if random.random() < 0.01: 
+            processed['heart_rate'] = 0.0 # Use 0 instead of NaN to avoid graph issues
             
         return processed
 
