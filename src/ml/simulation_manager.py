@@ -6,7 +6,7 @@ import tensorflow as tf
 import os
 import json
 import config
-from backend.twilio_service import send_alert
+from api.twilio_service import send_alert
 from src.data.generator_v2.engine import VitalsGeneratorV2
 from src.data.generator_v2.clinical_logic import ClinicalStateEngine
 
