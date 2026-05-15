@@ -1,0 +1,33 @@
+.status-stable .card-body {
+  background-color: #d4edda; /* Light green */
+  color: #155724; /* Dark green */
+  border-color: #c3e6cb;
+}
+
+.status-warning .card-body {
+  background-color: #fff3cd; /* Light yellow */
+  color: #856404; /* Dark yellow */
+  border-color: #ffeeba;
+}
+
+.blink {
+  animation: blink-animation 1s steps(5, start) infinite;
+  -webkit-animation: blink-animation 1s steps(5, start) infinite;
+}
+
+@keyframes blink-animation {
+  to {
+    visibility: hidden;
+  }
+}
+@-webkit-keyframes blink-animation {
+  to {
+    visibility: hidden;
+  }
+}
+
+.status-critical .card-body {
+  background-color: #f8d7da; /* Light red */
+  color: #721c24; /* Dark red */
+  border-color: #f5c6cb;
+}

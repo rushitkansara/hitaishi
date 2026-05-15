@@ -6,14 +6,17 @@ __pycache__/
 # Node.js
 web/node_modules/
 web/build/
+web/dist/
 
 # Logs
 logs/
+*.log
 
 # Data
 data_gen/data/
 src/data_v2/*.npz
 web/src/data/simulationData.js
+data_v2/
 
 # Models & Experiments
 models/*.h5
@@ -24,7 +27,8 @@ models/*.png
 models/*.txt
 experiments/
 
-# Extra MD Files & Internal Documentation
+# Internal Context/Docs
+.context/
 GEMINI.md
 LOGS.md
 CHANGELOG.md
@@ -33,7 +37,7 @@ project_artifacts_and_assumptions.md
 data-gen-spec.txt
 data-interpretation.txt
 stack.txt
-.context/
+SESSION_REPORT.txt
 
 # OS specific
 .DS_Store
@@ -41,5 +45,7 @@ stack.txt
 # Environment variables
 .env
 
-# Recipient phone number
+# Secrets/Sensitive
 recipient_number.txt
+*.pem
+*.key

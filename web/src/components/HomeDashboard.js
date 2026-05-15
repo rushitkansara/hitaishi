@@ -1,206 +1,216 @@
 import React, { useState, useEffect } from 'react';
+import { Container, Row, Col, Card, Button, Form, Collapse, Badge } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import PatientCard from './PatientCard';
+import { initSimulation, getPatients, deletePatient } from '../services/api';
+import ContactVerificationModal from './patient/ContactVerificationModal';
+import { useNotifications } from '../contexts/NotificationContext';
 
-// Define PROFILE_FACTORS for frontend dropdowns
-const PROFILE_FACTORS = {
-  genders: ['male', 'female'],
-  age_bins: ['18-30', '31-45', '46-60', '61-75', '76-90'],
-  activity_levels: ['sedentary', 'moderate', 'active'],
-  primary_conditions: [
-      'Healthy',
-      'Hypertension',
-      'Type 2 Diabetes',
-      'Heart Failure',
-      'COPD',
-      'Obesity',
-      'Chronic Kidney Disease',
-      'Atrial Fibrillation'
-  ]
+const CONDITIONS = [
+  'Healthy', 'Hypertension', 'Type 2 Diabetes', 'Heart Failure', 
+  'COPD', 'Obesity', 'Chronic Kidney Disease', 'Atrial Fibrillation'
+];
+
+const ACTIVITY_LEVELS = ['active', 'moderate', 'sedentary'];
+
+const PatientCard = ({ patient, onDelete }) => {
+  const navigate = useNavigate();
+  return (
+    <Card className="mb-3 patient-card shadow-sm border-0">
+      <Card.Body>
+        <div className="d-flex justify-content-between align-items-center mb-2">
+          <h5 className="mb-0 text-primary">{patient.name}</h5>
+          <div className="d-flex gap-2 align-items-center">
+            <Badge bg="success">Stable</Badge>
+            <Button 
+              variant="link" 
+              className="text-danger p-0 line-height-1" 
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(patient.id);
+              }}
+              style={{ fontSize: '1.5rem', textDecoration: 'none' }}
+              title="Delete Patient"
+            >
+              &times;
+            </Button>
+          </div>
+        </div>
+        <div className="small text-muted mb-3">
+            Age: {patient.age} | {patient.gender} | {patient.primary_condition}
+        </div>
+        <Button variant="outline-primary" size="sm" onClick={() => navigate(`/monitor/${patient.id}`)}>
+          Open Monitor
+        </Button>
+      </Card.Body>
+    </Card>
+  );
 };
 
 const HomeDashboard = () => {
-  const navigate = useNavigate();
+  const { showInfo, showSuccess, showWarning, showError } = useNotifications();
   const [patients, setPatients] = useState([]);
-  const [newPatient, setNewPatient] = useState({
-    name: '',
-    age: '',
-    gender: PROFILE_FACTORS.genders[0],
-    activity_level: PROFILE_FACTORS.activity_levels[0],
-    primary_condition: PROFILE_FACTORS.primary_conditions[0],
-    emergency_contact: ''
+  const [open, setOpen] = useState(false);
+  const [newPatient, setNewPatient] = useState({ 
+    name: '', age: '', gender: 'male', primary_condition: 'Healthy', activity_level: 'moderate', contacts: [{ name: '', phone: '', verified: 0 }] 
   });
+  const [verifyingContact, setVerifyingContact] = useState(null);
 
   useEffect(() => {
-    // Load patients from localStorage on component mount
-    const storedPatients = JSON.parse(localStorage.getItem('patients')) || [];
-    setPatients(storedPatients);
-  }, []);
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewPatient({ ...newPatient, [name]: value });
-  };
-
-  const handleAddPatient = async (e) => {
-    e.preventDefault();
-    if (!newPatient.name || !newPatient.age || !newPatient.emergency_contact) {
-      alert('Please fill in all required patient fields.');
-      return;
-    }
-
-    const patientId = Date.now(); // Simple unique ID generation
-
-    // Fetch initial baseline vitals from backend
-    try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}/generate_stable_data`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: newPatient.name,
-          age: parseInt(newPatient.age),
-          gender: newPatient.gender,
-          activity_level: newPatient.activity_level,
-          primary_condition: newPatient.primary_condition
-        }),
-      });
-      const data = await response.json();
-      const initialBaselines = data.sequence[0]; // Take the first frame as static baselines
-
-      // Assign static total steps based on activity level
-      let total_steps;
-      switch (newPatient.activity_level) {
-        case 'sedentary':
-          total_steps = Math.floor(Math.random() * 2001);
-          break;
-        case 'moderate':
-          total_steps = 2001 + Math.floor(Math.random() * 5999);
-          break;
-        case 'active':
-          total_steps = 8001 + Math.floor(Math.random() * 7000);
-          break;
-        default:
-          total_steps = 5000; // Default value
+    const fetchPatients = async () => {
+      try {
+        const data = await getPatients();
+        setPatients(data);
+      } catch (error) {
+        console.error("Failed to fetch patients:", error);
+        showError("Failed to load patient data. Please try refreshing the page.");
       }
+    };
+    fetchPatients();
+  }, [showError]);
 
-      const patientToAdd = { 
-        ...newPatient, 
-        id: patientId, 
-        age: parseInt(newPatient.age), 
-        baselines: initialBaselines, 
-        total_steps: total_steps
-      };
-      const updatedPatients = [...patients, patientToAdd];
-      setPatients(updatedPatients);
-      localStorage.setItem('patients', JSON.stringify(updatedPatients));
+  useEffect(() => {
+    if (!sessionStorage.getItem('hasSeenHomeGuide')) {
+      showInfo("Click Add Patient to add patient info.");
+      sessionStorage.setItem('hasSeenHomeGuide', 'true');
+    }
+  }, [showInfo]);
 
-      // Clear form
-      setNewPatient({
-        name: '',
-        age: '',
-        gender: PROFILE_FACTORS.genders[0],
-        activity_level: PROFILE_FACTORS.activity_levels[0],
-        primary_condition: PROFILE_FACTORS.primary_conditions[0],
-        emergency_contact: ''
-      });
-    } catch (error) {
-      console.error("Error adding patient or fetching baselines:", error);
-      alert('Failed to add patient or fetch baselines.');
+  const handleContactChange = (index, field, value) => {
+    const updatedContacts = [...newPatient.contacts];
+    updatedContacts[index][field] = value;
+    setNewPatient({ ...newPatient, contacts: updatedContacts });
+  };
+
+  const handleAddContact = () => {
+    setNewPatient({
+      ...newPatient,
+      contacts: [...newPatient.contacts, { name: '', phone: '', verified: false }]
+    });
+  };
+
+  const handleVerifySuccess = (index) => {
+    const updatedContacts = [...newPatient.contacts];
+    if (updatedContacts[index]) {
+      updatedContacts[index].verified = true;
+      setNewPatient({ ...newPatient, contacts: updatedContacts });
     }
   };
 
-  const handlePatientClick = (patientId) => {
-    navigate(`/patient/${patientId}`);
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this patient? This will stop their simulation and remove all records.")) {
+      try {
+        await deletePatient(id);
+        setPatients(prev => prev.filter(p => p.id !== id));
+        showSuccess("Patient deleted successfully.");
+      } catch (error) {
+        showError("Failed to delete patient: " + error.message);
+      }
+    }
+  };
+
+  const finalizeRegistration = () => {
+    showSuccess("Contact verified!");
+  };
+
+  const handleAddPatient = async () => {
+    try {
+      if (!newPatient.name || !newPatient.age) {
+        showWarning("Please fill in patient name and age.");
+        return;
+      }
+      
+      const result = await initSimulation(newPatient);
+      if (result.status === 'success' || result.status === 'exists') {
+        if (result.status === 'success') {
+          showSuccess(result.message);
+          const addedPatient = { ...newPatient, id: result.patient_id };
+          setPatients(prev => [...prev, addedPatient]);
+          
+          // If there are contacts, notify that alerts are disabled for now
+          if (newPatient.contacts.length > 0 && newPatient.contacts[0].name) {
+             showWarning("SMS alerts are currently disabled and will be turned on later.");
+          }
+        } else {
+          showWarning(result.message);
+        }
+        setOpen(false);
+        setNewPatient({ 
+          name: '', age: '', gender: 'male', primary_condition: 'Healthy', activity_level: 'moderate', contacts: [{ name: '', phone: '', verified: 0 }] 
+        });
+      }
+    } catch (error) {
+      showError("Failed to register patient: " + error.message);
+    }
   };
 
   return (
-    <div className="container-fluid">
-      {/* Header */}
-      <div className="dashboard-header">
-        <div className="container">
-          <div className="text-center">
-            <h1 className="dashboard-title">MediSense</h1>
-            <p className="dashboard-subtitle">AI-Powered Home Isolation Assistant</p>
-          </div>
-        </div>
+    <Container className="py-4">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h1>Patient Fleet</h1>
+        <Button variant="primary" onClick={() => setOpen(!open)}>
+          {open ? 'Hide Form' : 'Add Patient'}
+        </Button>
       </div>
 
-      {/* Add Patient Form */}
-      <div className="container my-4">
-        <div className="card">
-          <div className="card-header">Add New Patient</div>
-          <div className="card-body">
-            <form onSubmit={handleAddPatient}>
-              <div className="row">
-                <div className="col-md-6 mb-3">
-                  <label htmlFor="name" className="form-label">Patient Name</label>
-                  <input type="text" className="form-control" id="name" name="name" value={newPatient.name} onChange={handleInputChange} required />
-                </div>
-                <div className="col-md-6 mb-3">
-                  <label htmlFor="age" className="form-label">Age</label>
-                  <input type="number" className="form-control" id="age" name="age" value={newPatient.age} onChange={handleInputChange} required />
-                </div>
-                <div className="col-md-6 mb-3">
-                  <label htmlFor="gender" className="form-label">Gender</label>
-                  <select className="form-select" id="gender" name="gender" value={newPatient.gender} onChange={handleInputChange}>
-                    {PROFILE_FACTORS.genders.map(g => <option key={g} value={g}>{g}</option>)}
-                  </select>
-                </div>
-                <div className="col-md-6 mb-3">
-                  <label htmlFor="activity_level" className="form-label">Activity Level</label>
-                  <select className="form-select" id="activity_level" name="activity_level" value={newPatient.activity_level} onChange={handleInputChange}>
-                    {PROFILE_FACTORS.activity_levels.map(al => <option key={al} value={al}>{al}</option>)}
-                  </select>
-                </div>
-                <div className="col-md-6 mb-3">
-                  <label htmlFor="primary_condition" className="form-label">Primary Condition</label>
-                  <select className="form-select" id="primary_condition" name="primary_condition" value={newPatient.primary_condition} onChange={handleInputChange}>
-                    {PROFILE_FACTORS.primary_conditions.map(pc => <option key={pc} value={pc}>{pc}</option>)}
-                  </select>
-                </div>
-                <div className="col-md-6 mb-3">
-                  <label htmlFor="emergency_contact" className="form-label">Emergency Contact</label>
-                  <input type="text" className="form-control" id="emergency_contact" name="emergency_contact" value={newPatient.emergency_contact} onChange={handleInputChange} required />
-                </div>
-              </div>
-              <button type="submit" className="btn btn-primary">Add Patient</button>
-            </form>
-          </div>
+      <Collapse in={open}>
+        <div id="add-patient-form" className="mb-4 p-3 border rounded shadow-sm">
+          <Form>
+            <Row>
+              <Col md={12}><Form.Control placeholder="Patient Name" value={newPatient.name} onChange={e => setNewPatient({...newPatient, name: e.target.value})} className="mb-2" /></Col>
+              <Col md={6}><Form.Control type="number" placeholder="Age" value={newPatient.age} onChange={e => setNewPatient({...newPatient, age: e.target.value})} className="mb-2" /></Col>
+              <Col md={6}>
+                  <Form.Select value={newPatient.gender} onChange={e => setNewPatient({...newPatient, gender: e.target.value})} className="mb-2">
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                  </Form.Select>
+              </Col>
+              <Col md={6}>
+                  <Form.Select value={newPatient.activity_level} onChange={e => setNewPatient({...newPatient, activity_level: e.target.value})} className="mb-2">
+                    {ACTIVITY_LEVELS.map(a => <option key={a} value={a}>{a.charAt(0).toUpperCase() + a.slice(1)}</option>)}
+                  </Form.Select>
+              </Col>
+              <Col md={6}>
+                  <Form.Select value={newPatient.primary_condition} onChange={e => setNewPatient({...newPatient, primary_condition: e.target.value})} className="mb-2">
+                    {CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
+                  </Form.Select>
+              </Col>
+            </Row>
+            
+            <h6>Emergency Contacts</h6>
+            {newPatient.contacts.map((contact, index) => (
+                <Row key={index} className="mb-2 align-items-center">
+                    <Col><Form.Control placeholder="Name" value={contact.name} onChange={e => handleContactChange(index, 'name', e.target.value)} /></Col>
+                    <Col><Form.Control placeholder="Phone" value={contact.phone} onChange={e => handleContactChange(index, 'phone', e.target.value)} /></Col>
+                </Row>
+            ))}
+            {newPatient.contacts.length < 5 && <Button variant="link" onClick={handleAddContact}>+ Add Contact</Button>}
+            
+            <br />
+            <Button variant="success" className="mt-2 px-4" onClick={handleAddPatient}>Register Patient</Button>
+          </Form>
         </div>
-      </div>
+      </Collapse>
 
-      {/* Patient Cards Grid */}
-      <div className="container mt-5">
-        <div className="row">
-          <div className="col-12">
-            <div className="dashboard-section-header">
-              <h2 className="section-title">
-                <span className="section-icon">👥</span>
-                Patient Overview
-              </h2>
-              <p className="section-subtitle">Monitor all patients in real-time</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="row g-4">
-          {patients.length > 0 ? (
-            patients.map((patient) => (
-              <div key={patient.id} className="col-lg-4 col-md-6 col-sm-12">
-                <div 
-                  className="patient-card"
-                  onClick={() => handlePatientClick(patient.id)}
-                >
-                  <PatientCard patient={patient} />
-                </div>
-              </div>
-            ))
-          ) : (
-            <p className="text-center text-muted">No patients added yet. Use the form above to add a new patient.</p>
-          )}
-        </div>
-      </div>
-    </div>
+      {verifyingContact && (
+        <ContactVerificationModal 
+          contact={verifyingContact} 
+          onClose={() => setVerifyingContact(null)}
+          onVerified={(index) => {
+            handleVerifySuccess(index);
+            finalizeRegistration();
+            setVerifyingContact(null);
+          }}
+        />
+      )}
+
+      <Row>
+        {patients.map(p => (
+          <Col key={p.id} md={4}>
+            <PatientCard patient={p} onDelete={handleDelete} />
+          </Col>
+        ))}
+      </Row>
+    </Container>
   );
 };
 

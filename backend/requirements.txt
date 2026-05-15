@@ -5,3 +5,15 @@ twilio==9.8.4
 tensorflow==2.16.2
 scikit-learn==1.7.2
 numpy==1.26.4
+python-dotenv==1.2.2
+pandas==3.0.2
+python-dateutil==2.9.0.post0
+keras-tuner==1.4.8
+scipy==1.14.0
+matplotlib==3.10.0
+seaborn==0.13.2
+statsmodels==0.14.4
+requests==2.32.3
+# clicksend-client removed due to dependency issues
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9

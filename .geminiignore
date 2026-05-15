@@ -1,0 +1,21 @@
+# Exclude development tools from being indexed/read
+venv/
+__pycache__/
+.pytest_cache/
+.git/
+.context/
+logs/
+experiments/
+data_gen/
+data_v2/
+web/node_modules/
+web/build/
+*.pyc
+*.log
+*.npz
+*.pkl
+*.keras
+*.h5
+*.png
+.DS_Store
+.env
