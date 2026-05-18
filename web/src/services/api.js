@@ -1,6 +1,6 @@
 // hitaishi/web/src/services/api.js
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+const BACKEND_URL = process.env.REACT_APP_API_URL || 'https://hitaishi-production.up.railway.app';
 const API_PREFIX = `${BACKEND_URL}/api/v1_2`;
 
 export const getPatients = async () => {
