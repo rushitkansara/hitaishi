@@ -24,7 +24,9 @@ try:
     from sqlalchemy.orm import Session
     from sqlalchemy.exc import SQLAlchemyError
     from sqlalchemy.sql import func
-    logger.info("Modules imported successfully")except Exception as e:
+    logger.info("Modules imported successfully")
+
+except Exception as e:
     logger.exception("Failed to import modules")
     sys.exit(1)
 
