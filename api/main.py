@@ -10,8 +10,7 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-# Add parent directory and src to path to import config and modules
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Add parent directory and src/ml to path to import config and modules
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src', 'ml')))
 
 logger.info("Starting Backend Initialization")
