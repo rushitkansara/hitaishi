@@ -66,6 +66,15 @@ class SimulationRequest(BaseModel):
     patient_profile: PatientProfile
     emergency_type: int
 
+@app.get("/health")
+def health_check(db: Session = Depends(get_db)):
+    try:
+        # Simple query to test connection
+        db.execute(func.now())
+        return {"status": "healthy", "database": "connected"}
+    except Exception as e:
+        return {"status": "unhealthy", "error": str(e)}
+
 @app.get("/api/v1_2/patients")
 async def get_all_patients(db: Session = Depends(get_db)):
     try:
