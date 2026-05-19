@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 # Add parent directory to path to import config and modules
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src', 'ml')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), ' ..', 'src', 'ml')))
 
 logger.info("Starting Backend Initialization")
 
@@ -31,6 +31,11 @@ except Exception as e:
     sys.exit(1)
 
 app = FastAPI()
+from api.database import init_db
+init_db()
+
+
+
 # CORS Middleware
 origins = [
     config.FRONTEND_URL,
