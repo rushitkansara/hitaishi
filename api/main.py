@@ -23,8 +23,8 @@ try:
     from api.database import get_db, Patient, EmergencyContact, init_db
     from sqlalchemy.orm import Session
     from sqlalchemy.exc import SQLAlchemyError
-    logger.info("Modules imported successfully")
-except Exception as e:
+    from sqlalchemy.sql import func
+    logger.info("Modules imported successfully")except Exception as e:
     logger.exception("Failed to import modules")
     sys.exit(1)
 
