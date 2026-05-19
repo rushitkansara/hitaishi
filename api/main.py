@@ -34,7 +34,8 @@ app = FastAPI()
 origins = [
     config.FRONTEND_URL,
     "http://localhost:3000",
-    "http://localhost:3001"
+    "http://localhost:3001",
+    "https://hitaishi.vercel.app"
 ]
 
 app.add_middleware(
