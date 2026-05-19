@@ -29,12 +29,13 @@ except Exception as e:
     sys.exit(1)
 
 app = FastAPI()
-
 # CORS Middleware
 origins = [
     config.FRONTEND_URL,
     "http://localhost:3000",
     "http://localhost:3001",
+    "https://hitaishi.vercel.app"
+]
     "https://hitaishi.vercel.app"
 ]
 
