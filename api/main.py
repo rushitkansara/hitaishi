@@ -31,10 +31,6 @@ except Exception as e:
     sys.exit(1)
 
 app = FastAPI()
-from api.database import init_db
-init_db()
-
-
 
 # CORS Middleware
 origins = [
@@ -42,8 +38,8 @@ origins = [
     "http://localhost:3000",
     "http://localhost:3001",
     "https://hitaishi.vercel.app"
-
 ]
+
 
 app.add_middleware(
     CORSMiddleware,
