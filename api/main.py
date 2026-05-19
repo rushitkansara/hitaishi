@@ -35,8 +35,7 @@ origins = [
     "http://localhost:3000",
     "http://localhost:3001",
     "https://hitaishi.vercel.app"
-]
-    "https://hitaishi.vercel.app"
+
 ]
 
 app.add_middleware(
