@@ -43,6 +43,10 @@ logger.info("Main backend logic loaded")
 
 app = FastAPI()
 
+@app.get("/")
+def read_root():
+    return {"status": "online"}
+
 # CORS Middleware
 origins = [
     config.FRONTEND_URL,
