@@ -25,6 +25,7 @@ sys.excepthook = handle_exception
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+os.environ["TF_XLA_FLAGS"] = "--tf_xla_enable_xla_devices=false"
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
