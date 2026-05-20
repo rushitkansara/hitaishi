@@ -113,6 +113,8 @@ class SimulationManager:
             session['total_ticks'] += 1
 
             # 3. RUN MODEL INFERENCE (Robust Buffer Padding)
+            from src.ml.model_registry import get_predictor
+            
             raw_buffer = list(session['buffer'])
             input_array = np.array(raw_buffer, dtype=np.float32)
             

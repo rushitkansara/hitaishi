@@ -57,8 +57,7 @@ def get_ml_deps():
     from inference_engine import HealthRiskPredictor
     from src.ml.sim_gen import generate_patient_specific_stable_sequence, generate_patient_specific_emergency_sequence
     from src.ml.simulation_manager import get_sim_manager
-    from src.ml.model_registry import get_predictor
-    return HealthRiskPredictor, generate_patient_specific_stable_sequence, generate_patient_specific_emergency_sequence, get_sim_manager, get_predictor
+    return HealthRiskPredictor, generate_patient_specific_stable_sequence, generate_patient_specific_emergency_sequence, get_sim_manager
 
 # Access predictor where needed using: predictor = get_predictor()
 class Contact(BaseModel):
