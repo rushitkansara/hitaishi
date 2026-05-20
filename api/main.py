@@ -6,6 +6,16 @@ from typing import List, Optional, Dict
 import sys
 import os
 import logging
+import traceback
+import sys
+
+def handle_exception(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+    logger.critcal("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+
+sys.excepthook = handle_exception
 
 # Optimize TensorFlow for production/cpu-only environments
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
