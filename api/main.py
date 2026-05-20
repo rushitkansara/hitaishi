@@ -33,22 +33,7 @@ logger = logging.getLogger(__name__)
 # Add parent directory and src/ml to path to import config and modules
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src', 'ml')))
 
-logger.info("Starting Backend Initialization")
-
-try:
-    from inference_engine import HealthRiskPredictor
-    import config
-    from src.ml.sim_gen import generate_patient_specific_stable_sequence, generate_patient_specific_emergency_sequence
-    from src.ml.simulation_manager import get_sim_manager
-    from api.database import get_db, Patient, EmergencyContact, init_db
-    from sqlalchemy.orm import Session
-    from sqlalchemy.exc import SQLAlchemyError
-    from sqlalchemy.sql import func
-    logger.info("Modules imported successfully")
-
-except Exception as e:
-    logger.exception("Failed to import modules")
-    sys.exit(1)
+logger.info("Main backend logic loaded")
 
 app = FastAPI()
 
@@ -60,7 +45,6 @@ origins = [
     "https://hitaishi.vercel.app"
 ]
 
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -69,7 +53,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from src.ml.model_registry import get_predictor
+def get_ml_deps():
+    from inference_engine import HealthRiskPredictor
+    from src.ml.sim_gen import generate_patient_specific_stable_sequence, generate_patient_specific_emergency_sequence
+    from src.ml.simulation_manager import get_sim_manager
+    from src.ml.model_registry import get_predictor
+    return HealthRiskPredictor, generate_patient_specific_stable_sequence, generate_patient_specific_emergency_sequence, get_sim_manager, get_predictor
 
 # Access predictor where needed using: predictor = get_predictor()
 class Contact(BaseModel):
