@@ -9,6 +9,7 @@ import logging
 import traceback
 import sys
 import os
+import config
 
 os.environ["MALLOC_TRIM_THRESHOLD_"] = "0" # Forces memory release
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
