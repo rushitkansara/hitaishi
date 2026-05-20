@@ -31,6 +31,11 @@ os.environ["TF_XLA_FLAGS"] = "--tf_xla_enable_xla_devices=false"
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.sql import func
+from api.database import get_db, Patient, EmergencyContact
+
 # Add parent directory and src/ml to path to import config and modules
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src', 'ml')))
 
