@@ -1,7 +1,7 @@
 // hitaishi/web/src/services/api.js
 
 // Remove any trailing slash from the URL to ensure path construction is clean
-const BACKEND_URL = (process.env.REACT_APP_API_URL || 'https://hitaishi-production.up.railway.app').replace(/\/$/, '');
+const BACKEND_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 const API_PREFIX = `${BACKEND_URL}/api/v1_2`;
 
 export const getPatients = async () => {

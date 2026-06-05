@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2200" height="520" viewBox="0 0 2200 520">
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 z" fill="#1f4e79"/>
+    </marker>
+    <style>
+      .box { fill: #f7fbff; stroke: #1f4e79; stroke-width: 3; rx: 18; ry: 18; }
+      .dense { fill: #fffaf0; stroke: #a16207; stroke-width: 3; rx: 18; ry: 18; }
+      .out { fill: #f0fdf4; stroke: #166534; stroke-width: 3; rx: 18; ry: 18; }
+      .txt { font-family: Arial, Helvetica, sans-serif; fill: #0f172a; font-size: 24px; font-weight: 700; text-anchor: middle; }
+      .sub { font-family: Arial, Helvetica, sans-serif; fill: #334155; font-size: 18px; font-weight: 400; text-anchor: middle; }
+      .arrow { stroke: #1f4e79; stroke-width: 4; fill: none; marker-end: url(#arrow); }
+      .label { font-family: Arial, Helvetica, sans-serif; fill: #475569; font-size: 20px; font-weight: 600; text-anchor: middle; }
+      .title { font-family: Arial, Helvetica, sans-serif; fill: #0f172a; font-size: 30px; font-weight: 700; text-anchor: middle; }
+      .foot { font-family: Arial, Helvetica, sans-serif; fill: #475569; font-size: 18px; font-weight: 600; text-anchor: middle; }
+    </style>
+  </defs>
+
+  <text x="1100" y="44" class="title">Hitaishi V2 Unidirectional LSTM Architecture</text>
+
+  <rect x="40" y="160" width="180" height="120" class="box"/>
+  <text x="130" y="205" class="txt">Input</text>
+  <text x="130" y="238" class="sub">600 × 7</text>
+  <text x="130" y="264" class="sub">7 vital signs</text>
+
+  <line x1="220" y1="220" x2="290" y2="220" class="arrow"/>
+
+  <rect x="290" y="145" width="240" height="150" class="box"/>
+  <text x="410" y="192" class="txt">LSTM 128</text>
+  <text x="410" y="225" class="sub">return_sequences = True</text>
+  <text x="410" y="255" class="sub">captures long-range trends</text>
+
+  <line x1="530" y1="220" x2="600" y2="220" class="arrow"/>
+
+  <rect x="600" y="160" width="230" height="120" class="box"/>
+  <text x="715" y="208" class="txt">BatchNorm</text>
+  <text x="715" y="242" class="sub">stabilizes training</text>
+
+  <line x1="830" y1="220" x2="900" y2="220" class="arrow"/>
+
+  <rect x="900" y="160" width="220" height="120" class="box"/>
+  <text x="1010" y="208" class="txt">Dropout 0.2</text>
+  <text x="1010" y="242" class="sub">regularization</text>
+
+  <line x1="1120" y1="220" x2="1190" y2="220" class="arrow"/>
+
+  <rect x="1190" y="145" width="240" height="150" class="box"/>
+  <text x="1310" y="192" class="txt">LSTM 64</text>
+  <text x="1310" y="225" class="sub">return_sequences = False</text>
+  <text x="1310" y="255" class="sub">compresses sequence</text>
+
+  <line x1="1430" y1="220" x2="1500" y2="220" class="arrow"/>
+
+  <rect x="1500" y="160" width="230" height="120" class="box"/>
+  <text x="1615" y="208" class="txt">BatchNorm</text>
+  <text x="1615" y="242" class="sub">stabilizes training</text>
+
+  <line x1="1730" y1="220" x2="1800" y2="220" class="arrow"/>
+
+  <rect x="1800" y="160" width="220" height="120" class="box"/>
+  <text x="1910" y="208" class="txt">Dropout 0.2</text>
+  <text x="1910" y="242" class="sub">regularization</text>
+
+  <line x1="2020" y1="220" x2="2090" y2="220" class="arrow"/>
+
+  <rect x="2090" y="145" width="260" height="150" class="dense" transform="translate(-150,0)"/>
+  <text x="1970" y="192" class="txt">Dense 64</text>
+  <text x="1970" y="225" class="sub">ReLU</text>
+  <text x="1970" y="255" class="sub">feature transformation</text>
+
+  <line x1="1940" y1="220" x2="1970" y2="220" class="arrow"/>
+
+  <rect x="2060" y="160" width="220" height="120" class="dense" transform="translate(-0,0)"/>
+  <text x="2170" y="208" class="txt">Dense 32</text>
+  <text x="2170" y="242" class="sub">ReLU</text>
+
+  <line x1="2280" y1="220" x2="2350" y2="220" class="arrow"/>
+
+  <rect x="2390" y="145" width="260" height="150" class="out" transform="translate(-200,0)"/>
+  <text x="2290" y="192" class="txt">Softmax 13</text>
+  <text x="2290" y="225" class="sub">13 clinical states</text>
+  <text x="2290" y="255" class="sub">final prediction</text>
+
+  <text x="1100" y="410" class="foot">Total parameters: 378,665</text>
+  <text x="1100" y="442" class="foot">Unidirectional model for causal real-time monitoring of 600-second vital-sign sequences</text>
+</svg>

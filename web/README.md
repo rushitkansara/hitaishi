@@ -47,6 +47,8 @@ src/
 └── index.js                # React app entry point
 ```
 
+![System Architecture](../hitaishi_architecture.svg)
+
 ## Features Overview
 
 ### Home Dashboard

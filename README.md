@@ -1,50 +1,90 @@
-# Hitaishi: Intelligent Health Monitoring & Emergency Detection System
+# Hitaishi: Temporal Physiological Modeling & Real-Time Clinical Risk Stratification
 
-## Executive Overview
-Hitaishi is a clinical-grade health monitoring platform engineered to perform real-time diagnostic analysis on home-isolated patients. The system utilizes a deep learning architecture to continuously monitor 7 vital signs, identifying 13 critical medical conditions with high recall. By integrating physiological data simulation, edge-optimized machine learning, and low-latency alerting, Hitaishi demonstrates a robust, full-stack approach to medical technology.
+Hitaishi is a specialized research platform engineered for real-time diagnostic analysis of high-frequency physiological telemetry. It utilizes a deep temporal architecture to perform multi-variate sequence classification, identifying 13 critical clinical states with high precision.
 
-## Engineering Scope & Contributions
-As the lead engineer, I designed and implemented the end-to-end architecture, encompassing:
-*   **Data Science Pipeline:** Custom data generation engine to simulate multi-dimensional physiological trajectories.
-*   **Deep Learning Architecture:** Optimization of a multi-layer LSTM model for sequence classification, achieving a footprint of ~35 KB via INT8 quantization for edge-readiness.
-*   **Backend Engineering:** Scalable FastAPI-based inference server, ensuring high-concurrency stream processing for real-time risk stratification.
-*   **Full-Stack Integration:** Development of a high-density clinical dashboard for real-time visualization and emergency response management.
+## 🔬 Core Methodology
 
-## Technical Specifications
-| Component | Technology Stack |
-| :--- | :--- |
-| **Backend** | Python, FastAPI, SQLAlchemy (PostgreSQL), NumPy, Pandas |
-| **Frontend** | React (Hooks/Context), Recharts (for high-frequency telemetry) |
-| **Intelligence** | TensorFlow/Keras (LSTM), Scikit-Learn |
-| **Deployment** | Docker-ready architecture with production-level environment configuration |
+### 1. Neural Architecture: Deep Temporal Modeling
+The system employs a multi-layered **LSTM-RNN (Long Short-Term Memory)** architecture specifically optimized for physiological signal processing:
+*   **Temporal Window:** 600-second sequence length at a 1Hz sampling frequency.
+*   **Input Dimensionality:** 7-channel vector (HR, SBP, DBP, SpO2, RR, Temp, BG).
+*   **Sequential Logic:** Designed to capture non-linear temporal dependencies across acute onset (e.g., AMI) and chronic decompensation (e.g., Septic Shock).
+*   **Optimization:** INT8 quantization for low-latency inference (~35KB footprint), enabling deployment on edge-gateways without specialized hardware acceleration.
 
-## Core Engineering Achievements
-*   **High-Fidelity Simulation Engine:** Developed an engine that generates synthetic cohorts with temporal physiological noise, ensuring the model remains robust against sensor data variance.
-*   **Inference Optimization:** Successfully reduced model complexity for low-latency inference on standard CPUs, maintaining high diagnostic accuracy without the need for specialized hardware.
-*   **Clinical-Grade UI/UX:** Implemented a 'Status-Reason-Action' diagnostic protocol, designed to translate raw model inference into actionable clinical decisions, minimizing time-to-intervention.
-*   **System Reliability:** Engineered input-buffer management and state-synchronization handlers to ensure seamless streaming and zero-crash initialization, even during burst-load scenarios.
+### 2. SimGen v2: Hierarchical Physiological Simulation
+To address the "Cold Start" problem and data scarcity in medical AI, Hitaishi features a sophisticated 3-layer simulation engine:
+*   **Layer 1 (Baseline):** Stochastic baseline generation using circadian oscillators and patient-specific physiological ranges.
+*   **Layer 2 (Dynamics):** Modeling of physiological noise, sensor drift, and multi-parameter covariance.
+*   **Layer 3 (State Engine):** Markovian state transitions across 13 clinical classifications, modeling the trajectory from prodrome to peak decompensation.
 
-## Repository Overview
-```
+### 3. Clinical Detection Scope
+The model classifies physiological trajectories into 13 high-recall states:
+| Acute Emergencies | Chronic/Metabolic | Baseline States |
+| :--- | :--- | :--- |
+| Myocardial Infarction | Sepsis / Septic Shock | Stable / Healthy |
+| Arrhythmias | Hyperglycemia (DKA) | Needs Monitoring |
+| Stroke | Hypoglycemia | |
+| Hypertensive Crisis | Heart Failure | |
+| Respiratory Distress | Fall / Unconscious | |
+
+## 🏗 System Engineering
+
+### 1. Architectural Overview
+The Hitaishi ecosystem is designed for modularity and high-frequency data ingestion. The following diagram illustrates the interaction between the hierarchical simulation engine, the FastAPI inference gateway, and the React-based clinical dashboard.
+
+![System Architecture](./hitaishi_architecture.svg)
+
+### 2. Neural Sequence Processing
+The model utilizes a deep LSTM architecture to extract temporal features from multi-variate physiological streams.
+
+![LSTM Sequence Processing](./LSTM%20Sequence%20Processing-2026-05-14-051004.svg)
+
+### 3. Performance Evaluation
+Empirical validation of the LSTM-RNN architecture demonstrates high diagnostic recall and stability during the training phase.
+
+#### Training Dynamics
+The following curves illustrate the convergence of loss and accuracy across 100+ epochs, utilizing early stopping and learning rate decay to prevent overfitting on synthetic cohorts.
+
+![Training Curves](./experiments/v2_1_hybrid_20260417_105336/training_curves.png)
+
+#### Classification Accuracy
+The confusion matrix highlights the model's ability to differentiate between 13 clinical states, with minimal leakage between physiologically similar conditions (e.g., Sepsis vs. Shock).
+
+![Confusion Matrix](./experiments/v2_1_hybrid_20260417_105336/confusion_matrix.png)
+
+### Backend: High-Concurrency Inference
+*   **Framework:** FastAPI (Python 3.10+).
+*   **Inference Pipeline:** Integrated preprocessing (scaling, NaN repair) and risk-stratification logic.
+*   **Explainability:** Implementation of a "Status-Reason-Action" protocol, mapping latent space probabilities to human-interpretable clinical justifications.
+
+### Frontend: High-Density Clinical Dashboard
+*   **Stack:** React.js + Recharts.
+*   **Telemetry:** Real-time visualization of 7-channel vital sign streams with low-latency state synchronization.
+
+## 📂 Repository Structure
+
+```text
 hitaishi/
-├── backend/                  # API server, DB logic, and service integrations
-├── data_gen/                 # Physiological data simulation and validation pipeline
-├── src/ml/                   # ML core: Training, quantization, and inference engine
-├── web/                      # React-based clinical dashboard
-└── experiments/              # Training history, versioned models, and metadata
+├── api/                  # FastAPI microservice for session management & alerting
+├── src/ml/               # LSTM-RNN architecture, quantization, and inference engine
+├── src/data/             # SimGen v2: Markovian engines and physiological oscillators
+├── web/                  # React-based clinical dashboard
+└── data_v2/              # Versioned training/validation datasets
 ```
 
-## Setup & Deployment Instructions
-*Instructions provided for development and deployment environments.*
+## 🚀 Deployment & Implementation
 
-### 1. Environment Configuration
-*   **Python:** Install dependencies via `requirements.txt` and `backend/requirements.txt`.
-*   **Database:** Configured for PostgreSQL integration.
-*   **Alerting:** Twilio integration for automated emergency SMS notification.
+### ML Environment
+```bash
+# Initialize core ML dependencies
+pip install tensorflow numpy pandas scikit-learn
+# Run inference engine tests
+python -m src.ml.test_model
+```
 
-### 2. Development Execution
-1.  **Backend:** Initialize the API via `uvicorn backend.main:app`.
-2.  **Frontend:** Build and serve the dashboard using `npm start`.
+### System Initialization
+1.  **Backend:** `cd api && uvicorn main:app --port 8000`
+2.  **Frontend:** `cd web && npm install && npm start`
 
 ---
-*For a detailed examination of the underlying physiological modeling and data validation logic, please refer to [DATA_VALIDATION_REWRITTEN.md](./DATA_VALIDATION_REWRITTEN.md).*
+*Technical documentation and research logs are maintained in [.context/MODEL.md](./.context/MODEL.md) and [DATA_VALIDATION_REWRITTEN.md](./DATA_VALIDATION_REWRITTEN.md).*

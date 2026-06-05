@@ -1,15 +1,20 @@
-from fastapi import FastAPI, HTTPException, Depends
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-import numpy as np
-from typing import List, Optional, Dict
 import sys
 import os
 import logging
 import traceback
-import sys
-import os
+from typing import List, Optional, Dict
+
+# Add project root and src/ml to path BEFORE other imports
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, '..'))
+sys.path.insert(0, project_root)
+sys.path.insert(0, os.path.join(project_root, 'src', 'ml'))
+
 import config
+from fastapi import FastAPI, HTTPException, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+import numpy as np
 
 os.environ["MALLOC_TRIM_THRESHOLD_"] = "0" # Forces memory release
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -18,14 +23,13 @@ def handle_exception(exc_type, exc_value, exc_traceback):
     if issubclass(exc_type, KeyboardInterrupt):
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
         return
-    logger.critcal("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+    logging.getLogger(__name__).critical("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
 
 sys.excepthook = handle_exception
 
 # Optimize TensorFlow for production/cpu-only environments
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 os.environ["TF_XLA_FLAGS"] = "--tf_xla_enable_xla_devices=false"
 
 logging.basicConfig(level=logging.DEBUG)
@@ -35,9 +39,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql import func
 from api.database import get_db, Patient, EmergencyContact
-
-# Add parent directory and src/ml to path to import config and modules
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src', 'ml')))
+from src.ml.simulation_manager import get_sim_manager
 
 logger.info("Main backend logic loaded")
 
@@ -52,6 +54,8 @@ origins = [
     config.FRONTEND_URL,
     "http://localhost:3000",
     "http://localhost:3001",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
     "https://hitaishi.vercel.app"
 ]
 
@@ -64,7 +68,7 @@ app.add_middleware(
 )
 
 def get_ml_deps():
-    from inference_engine import HealthRiskPredictor
+    from src.ml.inference_engine import HealthRiskPredictor
     from src.ml.sim_gen import generate_patient_specific_stable_sequence, generate_patient_specific_emergency_sequence
     from src.ml.simulation_manager import get_sim_manager
     return HealthRiskPredictor, generate_patient_specific_stable_sequence, generate_patient_specific_emergency_sequence, get_sim_manager
