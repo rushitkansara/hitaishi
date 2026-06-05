@@ -39,7 +39,23 @@ The model utilizes a deep LSTM architecture to extract temporal features from mu
 
 ![LSTM Sequence Processing](./LSTM%20Sequence%20Processing-2026-05-14-051004.svg)
 
-### 3. Performance Evaluation
+### 3. Physiological Simulation Gallery
+SimGen v2 generates high-fidelity synthetic trajectories for 13 clinical states. Below is the comprehensive visual evidence of the engine's modeling capability across diverse medical emergencies.
+
+#### Comprehensive Telemetry Gallery
+![Clinical Telemetry Gallery](./src/v2_clinical_gallery.png)
+
+#### State-Specific Temporal Patterns
+The following diagrams illustrate the Markovian state transitions and physiological trajectories for specific clinical emergencies:
+
+| | | |
+| :---: | :---: | :---: |
+| ![Heart Attack](./mermaid-diagram-2026-05-14-110611.png) <br> **Heart Attack** | ![Stroke](./mermaid-diagram-2026-05-14-110829.png) <br> **Stroke** | ![Sepsis](./mermaid-diagram-2026-05-14-111131.png) <br> **Sepsis** |
+| ![DKA](./mermaid-diagram-2026-05-14-113153.png) <br> **DKA** | ![Hypertensive Crisis](./mermaid-diagram-2026-05-14-113319.png) <br> **Hypertensive Crisis** | ![Shock](./mermaid-diagram-2026-05-14-113655.png) <br> **Shock** |
+| ![Respiratory Distress](./mermaid-diagram-2026-05-14-113717.png) <br> **Resp. Distress** | ![Arrhythmia](./mermaid-diagram-2026-05-14-120505.png) <br> **Arrhythmia** | ![Heart Failure](./mermaid-diagram-2026-05-14-121014.svg) <br> **Heart Failure** |
+| ![Fall Unconscious](./LSTM%20Sequence%20Processing-2026-05-14-051047.png) <br> **Fall / Unconscious** | | |
+
+### 4. Performance Evaluation
 Empirical validation of the LSTM-RNN architecture demonstrates high diagnostic recall and stability during the training phase.
 
 #### Training Dynamics
